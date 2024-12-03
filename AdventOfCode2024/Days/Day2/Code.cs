@@ -5,6 +5,7 @@ public static class Shared
     public static async Task<List<List<int>>> GetReports()
     {
         var input = await File.ReadAllLinesAsync("Days/Day2/input.txt");
+        
         return input.Select(x => x.Split(" ", StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToList())
             .ToList();
     }

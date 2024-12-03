@@ -9,6 +9,7 @@ public static class Shared
             .ToList();
         var list2 = input.Select(x => int.Parse(x.Split(" ", StringSplitOptions.RemoveEmptyEntries)[1].Trim())).Order()
             .ToList();
+        
         return (list1, list2);
     }
 }
@@ -18,6 +19,7 @@ public static class Part1
     public static async Task<int> Run()
     {
         var (list1, list2) = await Shared.GetLists();
+        
         return list1.Select((t, i) => Math.Abs(t - list2[i])).Sum();
     }
 }
@@ -28,6 +30,7 @@ public static class Part2
     {
         var (list1, list2) = await Shared.GetLists();
         var similarityScore = list1.Sum(i => list2.Count(x => x == i) * i);
+        
         return similarityScore;
     }
 }
