@@ -1,15 +1,25 @@
-﻿namespace AdventOfCode2024.Days.Day1;
+﻿namespace AdventOfCode2024.Days.Day2;
 
 public static class Shared
 {
-    public static async Task<(List<int>, List<int>)> GetLists()
+    public static async Task<List<List<int>>> GetReports()
     {
-        var input = await File.ReadAllLinesAsync("Days/Day1/input.txt");
-        var list1 = input.Select(x => int.Parse(x.Split(" ", StringSplitOptions.RemoveEmptyEntries)[0].Trim())).Order()
+        var input = await File.ReadAllLinesAsync("Days/Day2/input.txt");
+        return input.Select(x => x.Split(" ", StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToList())
             .ToList();
-        var list2 = input.Select(x => int.Parse(x.Split(" ", StringSplitOptions.RemoveEmptyEntries)[1].Trim())).Order()
-            .ToList();
-        return (list1, list2);
+    }
+
+    public static bool IsSafeReport(List<int> report)
+    {
+        var ascending = report[1] > report[0];
+
+        for (var i = 0; i < report.Count - 1; i++)
+            if ((ascending && report[i + 1] <= report[i]) ||
+                (!ascending && report[i + 1] >= report[i]) ||
+                Math.Abs(report[i] - report[i + 1]) > 3)
+                return false;
+
+        return true;
     }
 }
 
@@ -17,8 +27,8 @@ public static class Part1
 {
     public static async Task<int> Run()
     {
-        var (list1, list2) = await Shared.GetLists();
-        return list1.Select((t, i) => Math.Abs(t - list2[i])).Sum();
+        var reports = await Shared.GetReports();
+        return reports.Count(Shared.IsSafeReport);
     }
 }
 
@@ -26,8 +36,13 @@ public static class Part2
 {
     public static async Task<int> Run()
     {
-        var (list1, list2) = await Shared.GetLists();
-        var similarityScore = list1.Sum(i => list2.Count(x => x == i) * i);
-        return similarityScore;
+        var reports = await Shared.GetReports();
+        var unsafeReports = reports.Where(x => !Shared.IsSafeReport(x)).ToList();
+        var additionalSafeReports = unsafeReports.Count(unsafeReport => unsafeReport
+            .Select((_, i) => unsafeReport.Where((_, index) => index != i).ToList())
+            .Where((_, i) => Shared.IsSafeReport(unsafeReport.Where((_, index) => index != i).ToList()))
+            .Any());
+
+        return reports.Count(Shared.IsSafeReport) + additionalSafeReports;
     }
 }

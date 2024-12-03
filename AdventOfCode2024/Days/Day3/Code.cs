@@ -1,32 +1,15 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace AdventOfCode2024.Days.Day2;
+namespace AdventOfCode2024.Days.Day3;
 
 public static class Shared
 {
-    public static async Task<List<List<int>>> GetReports()
+    public const string Pattern = @"mul\((-?\d+),(-?\d+)\)";
+    public static async Task<string> GetCode()
     {
-        var input = await File.ReadAllLinesAsync("Days/Day2/input.txt");
-        return input.Select(x => x.Split(" ", StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToList())
-            .ToList();
-    }
+        var lines = await File.ReadAllLinesAsync("Days/Day3/input.txt");
 
-
-    public static bool IsSafeReport(List<int> report)
-    {
-        var ascending = report[1] > report[0];
-
-        for (var i = 0; i < report.Count - 1; i++)
-        {
-            if ((ascending && report[i + 1] <= report[i]) ||
-                (!ascending && report[i + 1] >= report[i]) ||
-                Math.Abs(report[i] - report[i + 1]) > 3)
-            {
-                return false;
-            }
-        }
-
-        return true;
+        return string.Join("", lines);
     }
 }
 
@@ -34,8 +17,11 @@ public static class Part1
 {
     public static async Task<int> Run()
     {
-        var reports = await Shared.GetReports();
-        return reports.Count(Shared.IsSafeReport);
+        var code = await Shared.GetCode();
+        var matches = Regex.Matches(code, Shared.Pattern);
+
+        return matches
+            .Sum(match => int.Parse(match.Groups[1].Value) * int.Parse(match.Groups[2].Value));
     }
 }
 
@@ -43,13 +29,12 @@ public static class Part2
 {
     public static async Task<int> Run()
     {
-        var reports = await Shared.GetReports();
-        var unsafeReports = reports.Where(x => !Shared.IsSafeReport(x)).ToList();
-        var additionalSafeReports = unsafeReports.Count(unsafeReport => unsafeReport
-            .Select((_, i) => unsafeReport.Where((_, index) => index != i).ToList())
-            .Where((_, i) => Shared.IsSafeReport(unsafeReport.Where((_, index) => index != i).ToList()))
-            .Any());
+        var code = await Shared.GetCode();
 
-        return reports.Count(Shared.IsSafeReport) + additionalSafeReports;
+        return code.Split("do()")
+            .Select(x => x.Split("don't()")[0])
+            .SelectMany(x => Regex.Matches(x, Shared.Pattern)
+                .Select(match => int.Parse(match.Groups[1].Value) * int.Parse(match.Groups[2].Value)))
+            .Sum();
     }
 }
